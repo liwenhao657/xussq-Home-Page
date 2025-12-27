@@ -176,12 +176,14 @@
             border-color: rgba(255,255,255,0.2);
         }
 
-        /* 设置面板 - 跟随按钮位置调整 */
+        /* 设置面板 - 修复滚动问题：添加最大高度+垂直滚动 */
         .settings-panel {
             position: fixed;
             bottom: 80px;
             right: 20px;
             width: 280px;
+            max-height: 60vh; /* 限制最大高度为视口60% */
+            overflow-y: auto; /* 开启垂直滚动 */
             background-color: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
@@ -191,6 +193,21 @@
             z-index: 99;
             display: none;
             transition: all 0.3s ease;
+            /* 优化滚动条样式 */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(236,72,153,0.3) transparent;
+        }
+
+        /* 美化设置面板滚动条（Chrome等webkit内核） */
+        .settings-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .settings-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .settings-panel::-webkit-scrollbar-thumb {
+            background-color: rgba(236,72,153,0.3);
+            border-radius: 2px;
         }
 
         body.dark-mode .settings-panel {
@@ -206,6 +223,11 @@
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid rgba(255,255,255,0.2);
+            position: sticky; /* 标题粘性定位，滚动时不消失 */
+            top: 0;
+            background-color: inherit;
+            backdrop-filter: blur(5px);
+            padding-top: 5px;
         }
 
         body.dark-mode .settings-panel h3 {
@@ -334,6 +356,124 @@
             display: none !important;
         }
 
+        /* 新增：待办事项模块样式 */
+        .todo-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .todo-input input {
+            flex: 1;
+            max-width: 300px;
+            padding: 10px 15px;
+            border: 1px solid var(--glass-border-light);
+            border-radius: 8px;
+            background-color: rgba(255,255,255,0.8);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        body.dark-mode .todo-input input {
+            background-color: rgba(30,30,50,0.6);
+            border-color: var(--glass-border-dark);
+            color: #fff;
+        }
+        .todo-input button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #ec4899;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .todo-input button:hover {
+            background-color: #db2777;
+        }
+        .todo-list {
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background-color: rgba(255,255,255,0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+        }
+        body.dark-mode .todo-item {
+            background-color: rgba(30,30,50,0.4);
+        }
+        .todo-item:hover {
+            transform: translateX(5px);
+        }
+        .todo-item button {
+            background-color: transparent;
+            border: none;
+            color: #ec4899;
+            cursor: pointer;
+            font-size: 1.2rem;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .todo-item button:hover {
+            background-color: rgba(236,72,153,0.1);
+        }
+
+        /* 新增：便签笔记模块样式 */
+        .note-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 1px solid var(--glass-border-light);
+            border-radius: 8px;
+            background-color: rgba(255,255,255,0.8);
+            backdrop-filter: blur(5px);
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode .note-textarea {
+            background-color: rgba(30,30,50,0.6);
+            border-color: var(--glass-border-dark);
+            color: #fff;
+        }
+        .note-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #ec4899;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .note-btn:hover {
+            background-color: #db2777;
+        }
+        .note-display {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: rgba(255,255,255,0.5);
+            backdrop-filter: blur(5px);
+            text-align: left;
+            min-height: 80px;
+        }
+        body.dark-mode .note-display {
+            background-color: rgba(30,30,50,0.4);
+        }
+
         /* 时间模块 */
         .time-box .time-text {
             font-size: 1.5rem;
@@ -426,8 +566,226 @@
             font-size: 1rem;
             opacity: 0.9;
         }
+</style>
+</head>
+<body>
+    <!-- 加载动画覆盖层 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中ing</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="progressBar"></div>
+        </div>
+        <div class="loading-time" id="loadingTime">加载进度: 0%</div>
+    </div>
 
-        /* 番茄钟模块 - 增强玻璃效果 */
+    <!-- 背景图片层 -->
+    <div class="bg-image" id="bgImage"></div>
+    
+    <!-- 背景遮罩层 -->
+    <div class="bg-mask" id="bgMask"></div>
+
+    <!-- 悬浮齿轮设置按钮 -->
+    <div class="settings-toggle" id="settingsToggle">⚙️</div>
+
+    <!-- 设置面板 - 仅个人资料/友情链接/关于我默认开启，新增待办、便签开关 -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-item">
+            <span>实时时间</span>
+            <div class="switch" data-target="timeModule"></div> <!-- 默认关闭 -->
+        </div>
+        <div class="setting-item">
+            <span>背景设置</span>
+            <div class="switch" data-target="bgModule"></div> <!-- 默认关闭 -->
+        </div>
+        <div class="setting-item">
+            <span>番茄钟</span>
+            <div class="switch" data-target="pomodoroModule"></div> <!-- 默认关闭 -->
+        </div>
+        <div class="setting-item">
+            <span>名言警句</span>
+            <div class="switch" data-target="quoteModule"></div> <!-- 默认关闭 -->
+        </div>
+        <div class="setting-item">
+            <span>音乐播放器</span>
+            <div class="switch" data-target="musicModule"></div> <!-- 默认关闭 -->
+        </div>
+        <div class="setting-item">
+            <span>待办事项</span>
+            <div class="switch" data-target="todoModule"></div> <!-- 默认关闭 -->
+        </div>
+        <div class="setting-item">
+            <span>便签笔记</span>
+            <div class="switch" data-target="noteModule"></div> <!-- 默认关闭 -->
+        </div>
+        <div class="setting-item">
+            <span>个人资料</span>
+            <div class="switch switch-active" data-target="profileModule"></div> <!-- 默认开启 -->
+        </div>
+        <div class="setting-item">
+            <span>友情链接</span>
+            <div class="switch switch-active" data-target="linksModule"></div> <!-- 默认开启 -->
+        </div>
+        <div class="setting-item">
+            <span>关于我</span>
+            <div class="switch switch-active" data-target="aboutModule"></div> <!-- 默认开启 -->
+        </div>
+        <!-- 新增深色模式开关 -->
+        <div class="setting-item">
+            <span>深色模式</span>
+            <div class="switch" id="darkModeSwitch"></div>
+        </div>
+        <!-- 新增：重置模块状态按钮 -->
+        <div class="setting-item" style="justify-content: center; margin-top: 15px;">
+            <button id="resetModuleBtn" style="padding: 6px 16px; border-radius: 6px; border: none; background: var(--glass-bg-light); backdrop-filter: blur(8px); color: #333; cursor: pointer;">
+                重置所有模块显示
+            </button>
+        </div>
+    </div>
+    <!-- 顶端单行倒计时 -->
+    <div class="top-countdown" id="topCountdown">
+        距离2026年新年还有 <span id="days">00</span>天 <span id="hours">00</span>时 <span id="minutes">00</span>分 <span id="seconds">00</span>秒
+    </div>
+
+    <!-- 礼炮动画容器 -->
+    <div id="fireworks-container"></div>
+
+    <!-- 番茄钟全屏容器 - 新增 -->
+    <div class="pomodoro-fullscreen" id="pomodoroFullscreen" style="display: none;">
+        <button class="exit-btn" id="exitFullscreenBtn">退出全屏</button>
+        <div class="status" id="fullscreenStatus">专注时间</div>
+        <div class="timer" id="fullscreenTimer">25:00</div>
+        <div class="music-info" id="fullscreenMusicInfo">当前未播放音乐</div>
+    </div>
+
+    <div class="container">
+        <div class="site-desc">一个建立于21世纪的小站，存活于互联网的边缘</div>
+
+        <!-- 实时时间模块 - 默认隐藏 -->
+        <div class="module time-box module-hidden" id="timeModule">
+            <div class="time-text" id="currentTime">00:00:00</div>
+            <div class="date-text" id="currentDate">2025年12月20日 星期六</div>
+        </div>
+
+        <!-- 自定义背景图设置模块 - 默认隐藏 -->
+        <div class="module bg-settings module-hidden" id="bgModule">
+            <h2>自定义背景设置</h2>
+            <div class="bg-upload">
+                <input type="file" class="bg-input" id="bgFileInput" accept="image/*">
+            </div>
+            <div class="blur-control">
+                <input type="range" class="blur-slider" id="blurSlider" min="0" max="20" value="0" step="0.5">
+                <span class="blur-value" id="blurValue">模糊度: 0px</span>
+            </div>
+        </div>
+
+        <!-- 自定义番茄钟模块 - 默认隐藏（新增独立全屏按钮） -->
+        <div class="module pomodoro module-hidden" id="pomodoroModule">
+            <h2>🍅番茄钟</h2>
+            <div class="time-setting">
+                <div>
+                    <input type="number" id="workTimeInput" placeholder="工作时长(分)" min="1" value="25">
+                    <p>专注时间</p>
+                </div>
+                <div>
+                    <input type="number" id="restTimeInput" placeholder="休息时长(分)" min="1" value="5">
+                    <p>休息时间</p>
+                </div>
+            </div>
+            <div class="status" id="pomodoroStatus">准备就绪（开始专注）</div>
+            <div class="timer" id="pomodoroTimer">25:00</div>
+            <div class="controls">
+                <button id="startBtn">开始</button>
+                <button id="pauseBtn" disabled>暂停</button>
+                <button id="resetBtn">重置</button>
+                <!-- 新增：独立全屏按钮（优先级高于模块点击） -->
+                <button id="enterFullscreenBtn" class="fullscreen-btn">进入全屏</button>
+            </div>
+        </div>
+
+        <!-- 名言模块 - 默认隐藏 -->
+        <div class="module module-hidden" id="quoteModule">
+            <div class="quote-content" id="quoteContent">加载中...</div>
+            <div class="quote-author" id="quoteAuthor">—— 加载中...</div>
+            <div class="quote-author-desc" id="quoteAuthorDesc">加载中...</div>
+        </div>
+
+        <!-- 音乐播放器模块 - 默认隐藏 -->
+        <div class="module module-hidden" id="musicModule">
+            <h3 class="music-title">🎵 本地音乐列表播放器</h3>
+            <div class="music-upload">
+                <input type="file" class="music-input" id="musicFile" accept="audio/*" multiple>
+            </div>
+            <div class="music-control">
+                <button class="control-btn" id="playModeBtn">顺序播放</button>
+                <button class="control-btn" id="clearListBtn">清空列表</button>
+            </div>
+            <div class="music-list" id="musicList"></div>
+            <audio id="audioPlayer" class="audio-controls" controls>
+        </div>
+
+        <!-- 新增：待办事项模块 - 默认隐藏 -->
+        <div class="module module-hidden" id="todoModule">
+            <h2>✅ 待办事项</h2>
+            <div class="todo-input">
+                <input type="text" id="todoInput" placeholder="输入待办事项...">
+                <button id="addTodoBtn">添加</button>
+            </div>
+            <div class="todo-list" id="todoList"></div>
+        </div>
+
+        <!-- 新增：便签笔记模块 - 默认隐藏 -->
+        <div class="module module-hidden" id="noteModule">
+            <h2>📝 便签笔记</h2>
+            <textarea class="note-textarea" id="noteTextarea" placeholder="输入你的笔记内容..."></textarea>
+            <button class="note-btn" id="saveNoteBtn">保存笔记</button>
+            <div class="note-display" id="noteDisplay">你的笔记将显示在这里</div>
+        </div>
+
+        <!-- 个人资料模块 - 默认显示 -->
+        <div class="module profile" id="profileModule">
+            <img src="https://pic2.zhimg.com/v2-86b356a32e20cb5f91c3568614df54a3_1440w.jpg" alt="头像" class="profile-img">
+            <h1 class="profile-name">许愿上上签✨</h1>
+            <p class="profile-desc">热爱生活的学习者</p>
+        </div>
+
+        <!-- 友情链接模块 - 默认显示 -->
+        <div class="module links" id="linksModule">
+            <a href="https://github.com/liwenhao657" class="link-card" target="_blank">
+                <div class="link-icon">🐙</div>
+                <div class="link-name">GitHub</div>
+            </a>
+            <a href="https://im.qq.com/index/" class="link-card" target="_blank">
+                <div class="link-icon">🐧</div>
+                <div class="link-name">QQ号：66HONGKONG</div>
+            </a>
+            <a href="https://liwenhao657.github.io/xussq-Friendship-links/" class="link-card" target="_blank">
+                <div class="link-icon">🔗</div>
+                <div class="link-name">友链墙</div>
+            </a>
+            <a href="https://b23.tv/fkGZHQS" class="link-card" target="_blank">
+                <div class="link-icon">📺</div>
+                <div class="link-name">哔哩哔哩</div>
+            </a>
+        </div>
+
+        <!-- 关于我模块 - 默认显示 -->
+        <div class="module" id="aboutModule">
+            <h2 class="section-title">关于我</h2>
+            <p class="section-text">
+                一个平平无奇的人✨ ；是一名喜灰粉；主推喜花花(❁´◡`❁)； mbti为INFP；如果是喜灰粉的话也欢迎加入我的QQ群（群号）：1073305548
+            </p>
+        </div>
+
+        <footer>
+            © 2026 许愿上上签✨ All Rights Reserved
+        </footer>
+    </div>
+
+    <!-- 提示音音频元素 -->
+    <audio id="notificationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3" preload="auto">
+    <style>
+        /* 番茄钟模块 - 增强玻璃效果 + 全屏样式 */
         .pomodoro h2 {
             margin-bottom: 20px;
             font-size: 1.8rem;
@@ -479,6 +837,7 @@
             display: flex;
             gap: 10px;
             justify-content: center;
+            flex-wrap: wrap; /* 适配手机端按钮换行 */
         }
         .pomodoro button {
             padding: 10px 20px;
@@ -512,6 +871,73 @@
             cursor: not-allowed;
         }
 
+        /* 新增：全屏按钮特殊样式（区分其他按钮） */
+        .pomodoro .fullscreen-btn {
+            background-color: rgba(236, 72, 153, 0.15);
+            border-color: rgba(236, 72, 153, 0.3);
+            color: #ec4899;
+        }
+        body.dark-mode .pomodoro .fullscreen-btn {
+            background-color: rgba(236, 72, 153, 0.25);
+            border-color: rgba(236, 72, 153, 0.4);
+        }
+        .pomodoro .fullscreen-btn:hover {
+            background-color: rgba(236, 72, 153, 0.25);
+        }
+        body.dark-mode .pomodoro .fullscreen-btn:hover {
+            background-color: rgba(236, 72, 153, 0.35);
+        }
+
+        /* 番茄钟全屏模式样式 - 新增 */
+        .pomodoro-fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        .pomodoro-fullscreen .timer {
+            font-size: 8rem;
+            margin-bottom: 30px;
+        }
+        .pomodoro-fullscreen .status {
+            font-size: 1.5rem;
+            margin-bottom: 50px;
+            color: #fff;
+        }
+        .pomodoro-fullscreen .music-info {
+            position: absolute;
+            bottom: 50px;
+            font-size: 1rem;
+            opacity: 0.8;
+            text-align: center;
+            max-width: 80%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pomodoro-fullscreen .exit-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .pomodoro-fullscreen .exit-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
         /* 名言模块 */
         .quote-content {
             font-size: 1.2rem;
@@ -698,7 +1124,7 @@
             text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
         }
 
-        /* 链接模块 - 增强玻璃效果 */
+        /* 友情链接模块 */
         .links {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -800,6 +1226,18 @@
             .pomodoro .timer {
                 font-size: 2.5rem;
             }
+            /* 手机端全屏番茄钟适配 */
+            .pomodoro-fullscreen .timer {
+                font-size: 6rem;
+            }
+            /* 手机端番茄钟按钮换行适配 */
+            .pomodoro .controls {
+                gap: 8px;
+            }
+            .pomodoro button {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
             .container {
                 padding: 30px 15px;
             }
@@ -808,6 +1246,7 @@
             }
             .settings-panel {
                 width: 250px;
+                max-height: 50vh; /* 手机端降低设置面板最大高度 */
             }
             .loading-spinner {
                 width: 50px;
@@ -819,186 +1258,19 @@
             .loading-progress {
                 width: 150px;
             }
+            /* 手机端待办和便签适配 */
+            .todo-input {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .todo-input input {
+                max-width: 100%;
+            }
+            .note-textarea {
+                min-height: 120px;
+            }
         }
     </style>
-</head>
-<body>
-    <!-- 加载动画覆盖层 -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">加载中ing</div>
-        <div class="loading-progress">
-            <div class="loading-progress-bar" id="progressBar"></div>
-        </div>
-        <div class="loading-time" id="loadingTime">加载进度: 0%</div>
-    </div>
-
-    <!-- 背景图片层 -->
-    <div class="bg-image" id="bgImage"></div>
-    
-    <!-- 背景遮罩层 -->
-    <div class="bg-mask" id="bgMask"></div>
-
-    <!-- 悬浮齿轮设置按钮 -->
-    <div class="settings-toggle" id="settingsToggle">⚙️</div>
-
-    <!-- 设置面板 -->
-    <div class="settings-panel" id="settingsPanel">
-        <h3>功能开关</h3>
-        <div class="setting-item">
-            <span>实时时间</span>
-            <div class="switch switch-active" data-target="timeModule"></div>
-        </div>
-        <div class="setting-item">
-            <span>背景设置</span>
-            <div class="switch switch-active" data-target="bgModule"></div>
-        </div>
-        <div class="setting-item">
-            <span>番茄钟</span>
-            <div class="switch switch-active" data-target="pomodoroModule"></div>
-        </div>
-        <div class="setting-item">
-            <span>名言警句</span>
-            <div class="switch switch-active" data-target="quoteModule"></div>
-        </div>
-        <div class="setting-item">
-            <span>音乐播放器</span>
-            <div class="switch switch-active" data-target="musicModule"></div>
-        </div>
-        <div class="setting-item">
-            <span>个人资料</span>
-            <div class="switch switch-active" data-target="profileModule"></div>
-        </div>
-        <div class="setting-item">
-            <span>友情链接</span>
-            <div class="switch switch-active" data-target="linksModule"></div>
-        </div>
-        <div class="setting-item">
-            <span>关于我</span>
-            <div class="switch switch-active" data-target="aboutModule"></div>
-        </div>
-        <!-- 新增深色模式开关 -->
-        <div class="setting-item">
-            <span>深色模式</span>
-            <div class="switch" id="darkModeSwitch"></div>
-        </div>
-    </div>
-
-    <!-- 顶端单行倒计时 -->
-    <div class="top-countdown" id="topCountdown">
-        距离2026年新年还有 <span id="days">00</span>天 <span id="hours">00</span>时 <span id="minutes">00</span>分 <span id="seconds">00</span>秒
-    </div>
-
-    <!-- 礼炮动画容器 -->
-    <div id="fireworks-container"></div>
-
-    <div class="container">
-        <div class="site-desc">一个建立于21世纪的小站，存活于互联网的边缘</div>
-
-        <!-- 实时时间模块 -->
-        <div class="module time-box" id="timeModule">
-            <div class="time-text" id="currentTime">00:00:00</div>
-            <div class="date-text" id="currentDate">2025年12月20日 星期六</div>
-        </div>
-
-        <!-- 自定义背景图设置模块 -->
-        <div class="module bg-settings" id="bgModule">
-            <h2>自定义背景设置</h2>
-            <div class="bg-upload">
-                <input type="file" class="bg-input" id="bgFileInput" accept="image/*">
-            </div>
-            <div class="blur-control">
-                <input type="range" class="blur-slider" id="blurSlider" min="0" max="20" value="0" step="0.5">
-                <span class="blur-value" id="blurValue">模糊度: 0px</span>
-            </div>
-        </div>
-
-        <!-- 自定义番茄钟模块 -->
-        <div class="module pomodoro" id="pomodoroModule">
-            <h2>🍅番茄钟</h2>
-            <div class="time-setting">
-                <div>
-                    <input type="number" id="workTimeInput" placeholder="工作时长(分)" min="1" value="25">
-                    <p>专注时间</p>
-                </div>
-                <div>
-                    <input type="number" id="restTimeInput" placeholder="休息时长(分)" min="1" value="5">
-                    <p>休息时间</p>
-                </div>
-            </div>
-            <div class="status" id="pomodoroStatus">准备就绪（开始专注）</div>
-            <div class="timer" id="pomodoroTimer">25:00</div>
-            <div class="controls">
-                <button id="startBtn">开始</button>
-                <button id="pauseBtn" disabled>暂停</button>
-                <button id="resetBtn">重置</button>
-            </div>
-        </div>
-
-        <!-- 名言模块 -->
-        <div class="module" id="quoteModule">
-            <div class="quote-content" id="quoteContent">加载中...</div>
-            <div class="quote-author" id="quoteAuthor">—— 加载中...</div>
-            <div class="quote-author-desc" id="quoteAuthorDesc">加载中...</div>
-        </div>
-
-        <!-- 音乐播放器模块 -->
-        <div class="module" id="musicModule">
-            <h3 class="music-title">🎵 本地音乐列表播放器</h3>
-            <div class="music-upload">
-                <input type="file" class="music-input" id="musicFile" accept="audio/*" multiple>
-            </div>
-            <div class="music-control">
-                <button class="control-btn" id="playModeBtn">顺序播放</button>
-                <button class="control-btn" id="clearListBtn">清空列表</button>
-            </div>
-            <div class="music-list" id="musicList"></div>
-            <audio id="audioPlayer" class="audio-controls" controls>
-        </div>
-
-        <!-- 个人资料模块 -->
-        <div class="module profile" id="profileModule">
-            <img src="https://pic2.zhimg.com/v2-86b356a32e20cb5f91c3568614df54a3_1440w.jpg" alt="头像" class="profile-img">
-            <h1 class="profile-name">许愿上上签✨</h1>
-            <p class="profile-desc">热爱生活的学习者</p>
-        </div>
-
-        <!-- 友情链接模块 -->
-        <div class="module links" id="linksModule">
-            <a href="https://github.com/liwenhao657" class="link-card" target="_blank">
-                <div class="link-icon">🐙</div>
-                <div class="link-name">GitHub</div>
-            </a>
-            <a href="https://im.qq.com/index/" class="link-card" target="_blank">
-                <div class="link-icon">🐧</div>
-                <div class="link-name">QQ号：66HONGKONG</div>
-            </a>
-            <a href="https://www.baidu.com/" class="link-card" target="_blank">
-                <div class="link-icon">✍️</div>
-                <div class="link-name">百度（友情链接）</div>
-            </a>
-            <a href="https://b23.tv/fkGZHQS" class="link-card" target="_blank">
-                <div class="link-icon">📺</div>
-                <div class="link-name">哔哩哔哩</div>
-            </a>
-        </div>
-
-        <!-- 关于我模块 -->
-        <div class="module" id="aboutModule">
-            <h2 class="section-title">关于我</h2>
-            <p class="section-text">
-                一个平平无奇的人✨ ；是一名喜灰粉；主推喜花花(❁´◡`❁)； mbti为INFP；如果是喜灰粉的话也欢迎加入我的QQ群（群号）：1073305548
-            </p>
-        </div>
-
-        <footer>
-            © 2026 许愿上上签✨ All Rights Reserved
-        </footer>
-    </div>
-
-    <!-- 提示音音频元素 -->
-    <audio id="notificationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3" preload="auto"></audio>
-
     <script>
         // 1. 加载动画控制逻辑 - 固定5秒
         const loadingOverlay = document.getElementById('loadingOverlay');
@@ -1048,20 +1320,70 @@
             }
         });
 
-        // 3. 功能开关控制逻辑
+        // 3. 功能开关控制逻辑 - 新增模块记忆（本地存储）+ 首次默认显示3个模块
         const switches = document.querySelectorAll('.switch');
+        const allModuleIds = [
+            'timeModule', 'bgModule', 'pomodoroModule', 'quoteModule',
+            'musicModule', 'todoModule', 'noteModule', 'profileModule', 'linksModule', 'aboutModule'
+        ];
+        // 默认显示的模块（首次访问时）
+        const defaultShowModules = ['profileModule', 'linksModule', 'aboutModule'];
+
+        // 统一初始化模块状态（恢复本地存储或使用默认配置）
+        function initModuleStates() {
+            const savedModuleStates = JSON.parse(localStorage.getItem('moduleStates'));
+            
+            // 首次访问（无本地存储）：使用默认配置
+            if (!savedModuleStates) {
+                const defaultStates = {};
+                allModuleIds.forEach(moduleId => {
+                    defaultStates[moduleId] = defaultShowModules.includes(moduleId);
+                });
+                // 保存默认状态到本地存储
+                localStorage.setItem('moduleStates', JSON.stringify(defaultStates));
+                updateModuleDisplay(defaultStates);
+                return;
+            }
+
+            // 非首次访问：恢复本地存储状态
+            updateModuleDisplay(savedModuleStates);
+        }
+
+        // 同步模块显示状态和开关状态
+        function updateModuleDisplay(states) {
+            allModuleIds.forEach(moduleId => {
+                const switchEl = document.querySelector(`.switch[data-target="${moduleId}"]`);
+                const moduleEl = document.getElementById(moduleId);
+                const isShow = states[moduleId];
+                
+                // 同步开关状态
+                switchEl.classList.toggle('switch-active', isShow);
+                // 同步模块显示状态
+                moduleEl.classList.toggle('module-hidden', !isShow);
+            });
+        }
+
+        // 模块开关点击事件（保存状态到本地存储）
         switches.forEach(switchEl => {
             if(switchEl.id !== 'darkModeSwitch'){
                 switchEl.addEventListener('click', () => {
                     switchEl.classList.toggle('switch-active');
                     const targetId = switchEl.dataset.target;
                     const targetModule = document.getElementById(targetId);
-                    targetModule.classList.toggle('module-hidden');
+                    const isShow = switchEl.classList.contains('switch-active');
+                    
+                    // 更新本地存储
+                    const moduleStates = JSON.parse(localStorage.getItem('moduleStates')) || {};
+                    moduleStates[targetId] = isShow;
+                    localStorage.setItem('moduleStates', JSON.stringify(moduleStates));
+                    
+                    // 更新模块显示
+                    targetModule.classList.toggle('module-hidden', !isShow);
                 });
             }
         });
 
-        // 4. 深色模式切换逻辑
+        // 4. 深色模式切换逻辑（保留原有功能）
         const darkModeSwitch = document.getElementById('darkModeSwitch');
         const body = document.body;
         const bgMask = document.getElementById('bgMask');
@@ -1091,17 +1413,7 @@
             }
         }
 
-        // 页面加载时恢复深色模式状态
-        window.addEventListener('load', () => {
-            const isDarkMode = localStorage.getItem('darkMode') === 'true';
-            if(isDarkMode) {
-                darkModeSwitch.classList.add('switch-active');
-                body.classList.add('dark-mode');
-                updateBackgroundMask();
-            }
-        });
-
-        // 5. 节假日倒计时+礼炮特效 - 支持多个节假日自动切换
+        // 5. 节假日倒计时+礼炮特效（保留原有功能）
         function setHolidayCountdown() {
             // 定义节假日数组（按时间顺序）
             const holidays = [
@@ -1362,7 +1674,7 @@
         }
         setHolidayCountdown();
 
-        // 6. 实时时间日期更新
+        // 6. 实时时间日期更新（保留原有功能）
         function updateTime() {
             const now = new Date();
             const timeStr = now.toTimeString().split(' ')[0];
@@ -1374,7 +1686,7 @@
         updateTime();
         setInterval(updateTime, 1000);
 
-        // 7. 名言接口请求
+        // 7. 名言接口请求（保留原有功能）
         async function getQuote() {
             try {
                 const response = await fetch('https://api.iyk0.com/yan/api.php?charset=utf-8&encode=json');
@@ -1397,18 +1709,26 @@
                 document.getElementById('quoteAuthorDesc').textContent = "日本动画导演、编剧，代表作《千与千寻》《龙猫》等";
             }
         }
-        window.onload = getQuote;
-
-        // 8. 音乐列表功能
+        // 8. 音乐列表功能（保留原有功能 + 新增当前播放音乐跟踪）
         const musicFileInput = document.getElementById('musicFile');
         const audioPlayer = document.getElementById('audioPlayer');
         const musicList = document.getElementById('musicList');
         const playModeBtn = document.getElementById('playModeBtn');
         const clearListBtn = document.getElementById('clearListBtn');
-        
         let musicFiles = []; 
         let currentIndex = 0; 
         let playMode = 'order'; 
+        let currentPlayingMusic = "当前未播放音乐"; // 新增：跟踪当前播放音乐
+
+        // 新增：更新当前播放音乐信息
+        function updateCurrentPlayingMusic(name) {
+            currentPlayingMusic = name || "当前未播放音乐";
+            // 同步到全屏番茄钟的音乐信息显示
+            const fullscreenMusicInfo = document.getElementById('fullscreenMusicInfo');
+            if (fullscreenMusicInfo) {
+                fullscreenMusicInfo.textContent = `当前播放：${currentPlayingMusic}`;
+            }
+        }
 
         playModeBtn.addEventListener('click', () => {
             playMode = playMode === 'order' ? 'loop' : 'order';
@@ -1420,6 +1740,7 @@
             currentIndex = 0;
             musicList.innerHTML = '';
             audioPlayer.src = '';
+            updateCurrentPlayingMusic("当前未播放音乐"); // 清空音乐信息
         });
 
         musicFileInput.addEventListener('change', (e) => {
@@ -1456,6 +1777,7 @@
             audioPlayer.load();
             audioPlayer.play();
             updateActiveItem();
+            updateCurrentPlayingMusic(music.name); // 更新当前播放音乐
         }
 
         function updateActiveItem() {
@@ -1474,7 +1796,22 @@
             }
         });
 
-        // 9. 自定义番茄钟功能 + 提示音
+        // 新增：监听音频播放状态，同步音乐信息
+        audioPlayer.addEventListener('play', () => {
+            if (musicFiles[currentIndex]) {
+                updateCurrentPlayingMusic(musicFiles[currentIndex].name);
+            }
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            // 暂停时保持音乐信息显示
+            const fullscreenMusicInfo = document.getElementById('fullscreenMusicInfo');
+            if (fullscreenMusicInfo) {
+                fullscreenMusicInfo.textContent = `暂停播放：${currentPlayingMusic}`;
+            }
+        });
+
+        // 9. 自定义番茄钟功能 + 独立全屏按钮（核心优化）
         const workTimeInput = document.getElementById('workTimeInput');
         const restTimeInput = document.getElementById('restTimeInput');
         const pomodoroStatus = document.getElementById('pomodoroStatus');
@@ -1483,12 +1820,66 @@
         const pauseBtn = document.getElementById('pauseBtn');
         const resetBtn = document.getElementById('resetBtn');
         const notificationSound = document.getElementById('notificationSound');
+        const pomodoroModule = document.getElementById('pomodoroModule');
+        const pomodoroFullscreen = document.getElementById('pomodoroFullscreen');
+        const fullscreenStatus = document.getElementById('fullscreenStatus');
+        const fullscreenTimer = document.getElementById('fullscreenTimer');
+        const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
+        const enterFullscreenBtn = document.getElementById('enterFullscreenBtn'); // 新增：独立全屏按钮
 
         let timerInterval;
         let totalSeconds;
         let isRunning = false;
         let isWorking = true;
+        let isFullscreen = false; // 标记是否处于全屏状态
 
+        // 核心优化：独立全屏按钮点击事件（替代模块点击）
+        enterFullscreenBtn.addEventListener('click', enterPomodoroFullscreen);
+
+        // 进入番茄钟全屏模式（逻辑保留，优化触发方式）
+        function enterPomodoroFullscreen() {
+            // 同步当前状态到全屏容器
+            fullscreenStatus.textContent = pomodoroStatus.textContent;
+            fullscreenTimer.textContent = pomodoroTimer.textContent;
+            updateCurrentPlayingMusic(currentPlayingMusic); // 同步音乐信息
+
+            // 显示全屏容器，隐藏原页面内容
+            pomodoroFullscreen.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // 禁止页面滚动
+            isFullscreen = true;
+
+            // 尝试浏览器全屏（可选增强，不依赖浏览器全屏API也能显示全屏效果）
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log('浏览器全屏失败，使用自定义全屏模式', err);
+                });
+            }
+        }
+
+        // 退出番茄钟全屏模式（逻辑保留）
+        function exitPomodoroFullscreen() {
+            // 隐藏全屏容器，恢复页面滚动
+            pomodoroFullscreen.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            isFullscreen = false;
+
+            // 退出浏览器全屏（如果处于浏览器全屏状态）
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+        }
+
+        // 退出按钮点击事件（保留）
+        exitFullscreenBtn.addEventListener('click', exitPomodoroFullscreen);
+
+        // 监听浏览器全屏退出事件（保留）
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isFullscreen) {
+                exitPomodoroFullscreen();
+            }
+        });
+
+        // 原有番茄钟功能增强：同步全屏和非全屏计时器（保留）
         function playNotificationSound() {
             notificationSound.currentTime = 0;
             notificationSound.play().catch(err => console.log('提示音播放失败:', err));
@@ -1497,7 +1888,20 @@
         function updateTimerDisplay(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = seconds % 60;
-            pomodoroTimer.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            // 同步两个计时器显示
+            pomodoroTimer.textContent = timeStr;
+            if (isFullscreen) {
+                fullscreenTimer.textContent = timeStr;
+            }
+        }
+
+        function updateStatusText(text) {
+            // 同步两个状态显示
+            pomodoroStatus.textContent = text;
+            if (isFullscreen) {
+                fullscreenStatus.textContent = text;
+            }
         }
 
         function startTimer() {
@@ -1527,6 +1931,8 @@
             startBtn.disabled = false;
             pauseBtn.disabled = true;
             clearInterval(timerInterval);
+            // 更新暂停状态显示
+            updateStatusText(isWorking ? "专注暂停" : "休息暂停");
         }
 
         function resetTimer() {
@@ -1537,7 +1943,7 @@
             pauseBtn.disabled = true;
             workTimeInput.disabled = false;
             restTimeInput.disabled = false;
-            pomodoroStatus.textContent = "准备就绪";
+            updateStatusText("准备就绪（开始专注）");
             totalSeconds = parseInt(workTimeInput.value) * 60;
             updateTimerDisplay(totalSeconds);
         }
@@ -1548,10 +1954,10 @@
             pauseBtn.disabled = true;
 
             if (isWorking) {
-                pomodoroStatus.textContent = "专注时间";
+                updateStatusText("专注时间");
                 totalSeconds = parseInt(workTimeInput.value) * 60;
             } else {
-                    pomodoroStatus.textContent = "休息时间";
+                updateStatusText("休息时间");
                 totalSeconds = parseInt(restTimeInput.value) * 60;
             }
             updateTimerDisplay(totalSeconds);
@@ -1562,7 +1968,7 @@
         resetBtn.addEventListener('click', resetTimer);
         resetTimer();
 
-        // 10. 自定义背景图 + 修复模糊调节功能
+        // 10. 自定义背景图 + 修复模糊调节功能（保留原有功能）
         const bgFileInput = document.getElementById('bgFileInput');
         const blurSlider = document.getElementById('blurSlider');
         const blurValue = document.getElementById('blurValue');
@@ -1581,8 +1987,222 @@
             updateBackgroundMask();
         });
 
-        // 初始化背景遮罩
-        updateBackgroundMask();
+        // 11. 新增：待办事项功能（支持本地存储）
+        const todoInput = document.getElementById('todoInput');
+        const addTodoBtn = document.getElementById('addTodoBtn');
+        const todoList = document.getElementById('todoList');
+        let todos = JSON.parse(localStorage.getItem('todoList')) || [];
+
+        // 渲染待办列表
+        function renderTodos() {
+            todoList.innerHTML = '';
+            todos.forEach((todo, index) => {
+                const todoItem = document.createElement('div');
+                todoItem.className = 'todo-item';
+                todoItem.innerHTML = `
+                    <span>${todo}</span>
+                    <button onclick="deleteTodo(${index})">✕</button>
+                `;
+                todoList.appendChild(todoItem);
+            });
+        }
+
+        // 添加待办事项
+        addTodoBtn.addEventListener('click', () => {
+            const todoText = todoInput.value.trim();
+            if (todoText) {
+                todos.push(todoText);
+                localStorage.setItem('todoList', JSON.stringify(todos));
+                renderTodos();
+                todoInput.value = '';
+            }
+        });
+
+        // 按回车添加待办
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTodoBtn.click();
+            }
+        });
+
+        // 删除待办事项
+        function deleteTodo(index) {
+            todos.splice(index, 1);
+            localStorage.setItem('todoList', JSON.stringify(todos));
+            renderTodos();
+        }
+
+        // 12. 新增：便签笔记功能（支持本地存储）
+        const noteTextarea = document.getElementById('noteTextarea');
+        const saveNoteBtn = document.getElementById('saveNoteBtn');
+        const noteDisplay = document.getElementById('noteDisplay');
+
+        // 读取本地存储的笔记
+        function loadNote() {
+            const savedNote = localStorage.getItem('noteContent') || '你的笔记将显示在这里';
+            noteTextarea.value = savedNote;
+            noteDisplay.textContent = savedNote;
+        }
+
+        // 保存笔记
+        saveNoteBtn.addEventListener('click', () => {
+            const noteContent = noteTextarea.value.trim();
+            const displayContent = noteContent || '你的笔记将显示在这里';
+            localStorage.setItem('noteContent', noteContent);
+            noteDisplay.textContent = displayContent;
+        });
+
+        // 13. 模块状态重置按钮事件（新增）
+        document.getElementById('resetModuleBtn').addEventListener('click', () => {
+            // 清除本地存储的模块状态
+            localStorage.removeItem('moduleStates');
+            // 重新初始化模块状态（恢复默认：仅显示3个核心模块）
+            initModuleStates();
+            // 提示用户
+            alert('已重置所有模块为默认显示状态！');
+        });
+
+        // 14. 页面加载初始化（整合所有恢复逻辑）
+        window.addEventListener('load', () => {
+            // 恢复深色模式状态
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if(isDarkMode) {
+                darkModeSwitch.classList.add('switch-active');
+                body.classList.add('dark-mode');
+                updateBackgroundMask();
+            }
+
+            // 恢复模块显示状态（核心记忆功能：首次默认3个模块，后续保留用户设置）
+            initModuleStates();
+
+            // 初始化背景遮罩
+            updateBackgroundMask();
+
+            // 加载名言（仅当名言模块开启时执行，优化性能）
+            const quoteModule = document.getElementById('quoteModule');
+            if (!quoteModule.classList.contains('module-hidden')) {
+                getQuote();
+            }
+
+            // 验证模块ID完整性（可选，用于调试）
+            allModuleIds.forEach(id => {
+                if(!document.getElementById(id)) {
+                    console.warn(`模块ID ${id} 不存在，请检查HTML结构`);
+                }
+            });
+
+            // 初始化当前播放音乐信息（全屏番茄钟默认显示）
+            updateCurrentPlayingMusic(currentPlayingMusic);
+
+            // 初始化待办和笔记
+            renderTodos();
+            loadNote();
+        });
+
+        // 15. 优化：模块切换时动态加载名言（避免隐藏时浪费资源）
+        switches.forEach(switchEl => {
+            if(switchEl.dataset.target === 'quoteModule') {
+                switchEl.addEventListener('click', () => {
+                    const quoteModule = document.getElementById('quoteModule');
+                    if (!quoteModule.classList.contains('module-hidden')) {
+                        getQuote(); // 模块开启时加载名言
+                    }
+                });
+            }
+        });
+
+        // 16. 全屏番茄钟额外优化：键盘ESC退出全屏
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isFullscreen) {
+                exitPomodoroFullscreen();
+            }
+        });
+
+        // 17. 优化：全屏模式下同步暂停/继续状态
+        document.getElementById('fullscreenTimer').addEventListener('click', () => {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        });
+
+        // 18. 修复：音乐暂停/播放时同步全屏音乐信息
+        audioPlayer.addEventListener('play', () => {
+            if (musicFiles[currentIndex]) {
+                updateCurrentPlayingMusic(musicFiles[currentIndex].name);
+            }
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            const fullscreenMusicInfo = document.getElementById('fullscreenMusicInfo');
+            if (fullscreenMusicInfo && currentPlayingMusic !== "当前未播放音乐") {
+                fullscreenMusicInfo.textContent = `暂停播放：${currentPlayingMusic}`;
+            }
+        });
+
+        // 19. 优化：番茄钟时间输入框验证（避免非法值）
+        workTimeInput.addEventListener('input', () => {
+            let value = parseInt(workTimeInput.value);
+            if (isNaN(value) || value < 1) {
+                workTimeInput.value = 1;
+            } else if (value > 120) { // 限制最大120分钟
+                workTimeInput.value = 120;
+            }
+            // 重置计时器时更新总秒数
+            if (!isRunning) {
+                totalSeconds = parseInt(workTimeInput.value) * 60;
+                updateTimerDisplay(totalSeconds);
+            }
+        });
+
+        restTimeInput.addEventListener('input', () => {
+            let value = parseInt(restTimeInput.value);
+            if (isNaN(value) || value < 1) {
+                restTimeInput.value = 1;
+            } else if (value > 60) { // 限制最大60分钟
+                restTimeInput.value = 60;
+            }
+            // 重置计时器时更新总秒数
+            if (!isRunning && !isWorking) {
+                totalSeconds = parseInt(restTimeInput.value) * 60;
+                updateTimerDisplay(totalSeconds);
+            }
+        });
+
+        // 20. 优化：全屏按钮状态同步（避免重复点击）
+        enterFullscreenBtn.addEventListener('click', () => {
+            // 点击后短暂禁用按钮，防止重复触发
+            enterFullscreenBtn.disabled = true;
+            setTimeout(() => {
+                enterFullscreenBtn.disabled = false;
+            }, 500);
+        });
+
+        // 21. 修复：浏览器全屏状态变化时同步自定义全屏状态
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                // 进入浏览器全屏时，标记为自定义全屏状态
+                isFullscreen = true;
+            } else if (isFullscreen) {
+                // 退出浏览器全屏时，同步退出自定义全屏
+                exitPomodoroFullscreen();
+            }
+        });
+
+        // 22. 优化：手机端全屏番茄钟触摸适配（点击任意区域暂停/继续）
+        if (window.innerWidth <= 600) {
+            pomodoroFullscreen.addEventListener('click', (e) => {
+                // 排除退出按钮区域
+                if (e.target !== exitFullscreenBtn && !exitFullscreenBtn.contains(e.target)) {
+                    if (isRunning) {
+                        pauseTimer();
+                    } else {
+                        startTimer();
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
